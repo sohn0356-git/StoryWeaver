@@ -1,0 +1,3 @@
+const db=new Promise((resolve,reject)=>{const r=indexedDB.open('storyweaver',1);r.onupgradeneeded=()=>r.result.createObjectStore('library');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
+export async function readLibrary(key){const d=await db;return new Promise((resolve,reject)=>{const r=d.transaction('library').objectStore('library').get(key);r.onsuccess=()=>resolve(r.result||[]);r.onerror=()=>reject(r.error)})}
+export async function saveLibrary(key,value){const d=await db;return new Promise((resolve,reject)=>{const t=d.transaction('library','readwrite');t.objectStore('library').put(value,key);t.oncomplete=resolve;t.onerror=()=>reject(t.error)})}
