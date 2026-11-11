@@ -11,6 +11,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: github-pages
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,7 +21,17 @@ jobs:
       - uses: actions/configure-pages@v5
       - run: npm ci
       - name: Build PWA
-        run: npm run build
+        run: |
+          node --input-type=module -e '
+            const required = ["VITE_FIREBASE_API_KEY", "VITE_FIREBASE_AUTH_DOMAIN", "VITE_FIREBASE_PROJECT_ID", "VITE_FIREBASE_APP_ID"];
+            const missing = required.filter(name => !process.env[name]?.trim());
+            if (missing.length) {
+              console.error("Missing Firebase variables in github-pages environment: " + missing.join(", "));
+              process.exit(1);
+            }
+            console.log("Required Firebase build variables are configured.");
+          '
+          npm run build
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY || vars.VITE_FIREBASE_API_KEY }}

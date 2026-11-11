@@ -43,6 +43,6 @@ npm run preview
 
 서비스 주소: https://sohn0356-git.github.io/StoryWeaver/
 
-Repository Settings → Pages → Source는 **GitHub Actions**로 설정합니다. Firebase 설정은 Settings → Secrets and variables → Actions에서 `.env.example`과 같은 이름의 Repository secrets 또는 Variables로 등록합니다. 둘 다 있으면 Secrets가 우선합니다. 값을 변경한 뒤 Actions에서 배포 워크플로를 다시 실행하세요.
+Repository Settings → Pages → Source는 **GitHub Actions**로 설정합니다. Firebase 설정은 Settings → Secrets and variables → Actions에서 `.env.example`과 같은 이름의 Repository secrets 또는 Variables로 등록합니다. `github-pages` Environment의 Secrets 또는 Variables도 지원하며 빌드와 배포 작업 모두 해당 환경을 사용합니다. 둘 다 있으면 Secrets가 우선합니다. 값을 변경한 뒤 Actions에서 배포 워크플로를 다시 실행하세요.
 
 Firebase Authentication의 승인된 도메인에 `sohn0356-git.github.io`를 추가해야 Google 로그인이 가능합니다. Firebase 환경변수가 없으면 서재는 게스트 모드로 동작합니다.
