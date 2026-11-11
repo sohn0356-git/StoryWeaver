@@ -20,6 +20,7 @@ jobs:
           cache: npm
       - uses: actions/configure-pages@v5
       - run: npm ci
+      - run: npm test
       - name: Build PWA
         run: |
           node --input-type=module -e '
