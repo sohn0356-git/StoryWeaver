@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeBook,setSpreadLayout,appendSpread,mergeLibraries} from '../src/book-model.js';
+import {normalizeBook,setSpreadLayout,appendSpread,mergeLibraries,setSpreadCompletion} from '../src/book-model.js';
 import {chunkBook} from '../src/cloud-library.js';
 const legacy=()=>({id:'book',layout:2,updated:1,pages:[{id:'a',text:'first',image:'data:image/jpeg;base64,abc'},{id:'b',text:'second'}]});
 test('legacy books keep page content and spread grouping',()=>{const b=normalizeBook(legacy());assert.deepEqual(b.spreads[0].pageIds,['a','b']);assert.equal(b.pages[0].image,legacy().pages[0].image)});
 test('one spread can change without changing adjacent layouts or losing content',()=>{let b=setSpreadLayout(normalizeBook(legacy()),0,1);assert.deepEqual(b.spreads.map(s=>s.pageIds.length),[1,1]);b=setSpreadLayout(b,0,2);b=appendSpread(b,1);assert.deepEqual(b.spreads.map(s=>s.pageIds.length),[2,1,1]);assert.equal(b.pages.find(p=>p.id==='b').text,'second');assert.deepEqual(legacy().pages.map(p=>p.id),['a','b'])});
 test('sync merge keeps newer edits, unrelated books and deletion tombstones',()=>{const b=legacy();const merged=mergeLibraries([b,{...b,id:'other'}],[{...b,title:'remote',updated:2}]);assert.equal(merged.length,2);assert.equal(merged.find(x=>x.id==='book').title,'remote');assert.equal(mergeLibraries([{...b,title:'newer',updated:5}],[b])[0].title,'newer');assert.equal(mergeLibraries([b],[{id:'book',deleted:true,updated:3}])[0].deleted,true)});
 test('cloud chunks round-trip large image strings, Korean and emoji at boundaries',()=>{const book={text:'가'.repeat(179980)+'🌳🌙한글'.repeat(15000),image:'data:image/jpeg;base64,'+'a'.repeat(1000000)};const chunks=chunkBook(book);assert.ok(chunks.length>1);for(const text of chunks){assert.ok(Buffer.byteLength(text)<1000000);assert.equal(Buffer.from(text).toString(),text)}assert.deepEqual(JSON.parse(chunks.join('')),book)});
+
+test('completion belongs to one spread, persists in JSON and resets on layout changes',()=>{let b=appendSpread(normalizeBook(legacy()),1);b=setSpreadCompletion(b,0,true);assert.equal(b.spreads[0].completed,true);assert.equal(!!b.spreads[1].completed,false);assert.equal(JSON.parse(JSON.stringify(b)).spreads[0].completed,true);b=setSpreadLayout(b,0,1);assert.equal(b.spreads[0].completed,false);b=setSpreadCompletion(b,1,true);b=setSpreadCompletion(b,1,false);assert.equal(b.spreads[1].completed,false)});

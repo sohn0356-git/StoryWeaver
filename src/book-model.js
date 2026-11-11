@@ -11,9 +11,12 @@ export function normalizeBook(book){
 export function setSpreadLayout(book,index,count){
  const b=normalizeBook(book),spreads=b.spreads.map(s=>({...s,pageIds:[...s.pageIds]})),pages=[...b.pages],s=spreads[index];
  if(!s||s.pageIds.length===count)return b;
+ s.completed=false;
  if(count===2){const p=makePage();pages.push(p);s.pageIds.push(p.id)}
  else {const extra=s.pageIds.splice(1);spreads.splice(index+1,0,...extra.map(id=>({id:crypto.randomUUID(),pageIds:[id]})))}
  return {...b,spreads,pages};
 }
 export function appendSpread(book,count=1){const b=normalizeBook(book),pages=Array.from({length:count},makePage);return {...b,pages:[...b.pages,...pages],spreads:[...b.spreads,{id:crypto.randomUUID(),pageIds:pages.map(p=>p.id)}]}}
 export function mergeLibraries(local,remote){const map=new Map(local.map(b=>[b.id,b]));for(const b of remote){const old=map.get(b.id);if(!old||(b.updated||0)>(old.updated||0))map.set(b.id,b)}return [...map.values()].map(normalizeBook)}
+
+export function setSpreadCompletion(book,index,completed){const b=normalizeBook(book);return {...b,spreads:b.spreads.map((s,i)=>i===index?{...s,completed:!!completed}:s)}}
