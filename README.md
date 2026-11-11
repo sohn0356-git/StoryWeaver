@@ -46,3 +46,9 @@ npm run preview
 Repository Settings → Pages → Source는 **GitHub Actions**로 설정합니다. Firebase 설정은 Settings → Secrets and variables → Actions에서 `.env.example`과 같은 이름의 Repository secrets 또는 Variables로 등록합니다. `github-pages` Environment의 Secrets 또는 Variables도 지원하며 빌드와 배포 작업 모두 해당 환경을 사용합니다. 둘 다 있으면 Secrets가 우선합니다. 값을 변경한 뒤 Actions에서 배포 워크플로를 다시 실행하세요.
 
 Firebase Authentication의 승인된 도메인에 `sohn0356-git.github.io`를 추가해야 Google 로그인이 가능합니다. Firebase 환경변수가 없으면 서재는 게스트 모드로 동작합니다.
+
+## 모바일과 업데이트
+
+모바일 하단 메뉴에서 내 서재, 새 이야기, 앱 설치 안내, 업데이트를 사용할 수 있습니다. 각 페이지는 글(왼쪽)과 이미지(오른쪽)로 편집하며, 2페이지 구성에서는 두 페이지를 세로로 배치해 입력 공간을 확보합니다. iOS safe area와 standalone 화면을 지원합니다.
+
+`업데이트`는 StoryWeaver 앱 캐시와 서비스 워커만 갱신합니다. 계정별 책과 이미지가 저장된 IndexedDB는 삭제하지 않습니다. 새 서비스 워커가 적용되면 열린 화면을 새 버전으로 갱신합니다. 이전 버전의 Firebase 설정 안내가 계속 나오면 인터넷에 연결한 상태로 사이트를 다시 열어 최신 버전을 받으세요.
