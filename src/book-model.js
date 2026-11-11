@@ -19,7 +19,7 @@ export function normalizeBook(book){
  }
  return {...book,canvasVersion:1,pages,spreads};
 }
-export function setSpreadLayout(book,index,count){const b=normalizeBook(book);return {...b,spreads:b.spreads.map((s,i)=>i===index&&s.layout!==count?{...s,layout:count,completed:false}:s)}}
+export function setSpreadLayout(book,index,count){const b=normalizeBook(book),scene=b.spreads[index];if(!scene||scene.layout===count)return b;const id=scene.pageIds[0];const pages=b.pages.map(p=>{if(p.id!==id)return p;const art=sceneArtwork(p),target=count===2?'spread':'left',source=count===2?'left':'spread';return !art[target]&&!p.artworkModes?.[target]&&art[source]?setSceneArtwork(p,{[target]:art[source]}):p});return {...b,pages,spreads:b.spreads.map((s,i)=>i===index?{...s,layout:count,completed:false}:s)}}
 export function appendSpread(book,count=1){const b=normalizeBook(book),p=makePage();return {...b,pages:[...b.pages,p],spreads:[...b.spreads,{id:crypto.randomUUID(),layout:count,pageIds:[p.id]}]}}
 export function mergeLibraries(local,remote){const map=new Map(local.map(b=>[b.id,b]));for(const b of remote){const old=map.get(b.id);if(!old||(b.updated||0)>(old.updated||0))map.set(b.id,b)}return ensureShelfOrder([...map.values()].map(normalizeBook))}
 export function setSpreadCompletion(book,index,completed){const b=normalizeBook(book);return {...b,spreads:b.spreads.map((s,i)=>i===index?{...s,completed:!!completed}:s)}}
@@ -33,3 +33,6 @@ export function moveLibraryBook(books,sourceId,targetId,now=Date.now()){
  const stamp=Math.max(now,...ordered.map(b=>b.updated||0))+1;
  return [...ordered.map((b,i)=>b.shelfOrder===i?b:{...b,shelfOrder:i,updated:stamp}),...books.filter(b=>b.deleted)];
 }
+
+export function sceneArtwork(page){return page.artwork?{left:'',right:'',spread:'',...page.artwork}:{left:page.image||'',right:page.extraImages?.[0]||'',spread:page.image||''}}
+export function setSceneArtwork(page,patch){return {...page,artwork:{...sceneArtwork(page),...patch},artworkModes:{...page.artworkModes,...Object.fromEntries(Object.keys(patch).map(key=>[key,true]))}}}
