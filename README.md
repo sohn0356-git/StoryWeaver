@@ -36,3 +36,13 @@ npm run preview
 ```
 
 `dist`를 HTTPS 정적 호스팅에 배포하세요. manifest, 192/512px 앱 아이콘, 서비스 워커가 포함되어 있습니다. 최초 온라인 방문 후 캐시된 앱을 오프라인에서 사용할 수 있습니다. 브라우저가 설치 이벤트를 제공하면 상단에 설치 버튼이 표시됩니다. iOS는 Safari 공유 메뉴 → 홈 화면에 추가를 사용합니다. 오프라인에서는 Google 로그인할 수 없습니다.
+
+## GitHub Actions 자동 배포
+
+`main`에 push하면 `.github/workflows/deploy.yml`이 빌드하고 GitHub Pages에 배포합니다.
+
+서비스 주소: https://sohn0356-git.github.io/StoryWeaver/
+
+Repository Settings → Pages → Source는 **GitHub Actions**로 설정합니다. Firebase 설정은 Settings → Secrets and variables → Actions에서 `.env.example`과 같은 이름의 Repository secrets 또는 Variables로 등록합니다. 둘 다 있으면 Secrets가 우선합니다. 값을 변경한 뒤 Actions에서 배포 워크플로를 다시 실행하세요.
+
+Firebase Authentication의 승인된 도메인에 `sohn0356-git.github.io`를 추가해야 Google 로그인이 가능합니다. Firebase 환경변수가 없으면 서재는 게스트 모드로 동작합니다.
