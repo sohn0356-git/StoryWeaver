@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeBook,setSpreadLayout,appendSpread,mergeLibraries,setSpreadCompletion,PAGE_FORMATS} from '../src/book-model.js';
+import {normalizeBook,setSpreadLayout,appendSpread,mergeLibraries,setSpreadCompletion,PAGE_FORMATS,sortLibrary,moveLibraryBook} from '../src/book-model.js';
 import {chunkBook} from '../src/cloud-library.js';
 const legacy=()=>({id:'book',layout:2,updated:1,pages:[{id:'a',text:'first',image:'data:image/jpeg;base64,abc'},{id:'b',text:'second'}]});
 test('legacy two-page content becomes one wide canvas without losing text or images',()=>{const source=legacy();source.pages[1].image='second-image';const b=normalizeBook(source);assert.equal(b.canvasVersion,1);assert.equal(b.pages.length,1);assert.deepEqual(b.spreads[0].pageIds,['a']);assert.equal(b.spreads[0].layout,2);assert.equal(b.pages[0].text,'first\n\nsecond');assert.equal(b.pages[0].image,source.pages[0].image);assert.deepEqual(b.pages[0].extraImages,['second-image']);assert.deepEqual(normalizeBook(b),b)});
@@ -9,3 +9,7 @@ test('sync merge keeps newer edits, unrelated books and deletion tombstones',()=
 test('cloud chunks round-trip large image strings, Korean and emoji at boundaries',()=>{const book={text:'가'.repeat(179980)+'🌳🌙한글'.repeat(15000),image:'data:image/jpeg;base64,'+'a'.repeat(1000000)};const chunks=chunkBook(book);assert.ok(chunks.length>1);for(const text of chunks){assert.ok(Buffer.byteLength(text)<1000000);assert.equal(Buffer.from(text).toString(),text)}assert.deepEqual(JSON.parse(chunks.join('')),book)});
 
 test('completion belongs to one spread, persists in JSON and resets on layout changes',()=>{let b=appendSpread(normalizeBook(legacy()),1);b=setSpreadCompletion(b,0,true);assert.equal(b.spreads[0].completed,true);assert.equal(!!b.spreads[1].completed,false);assert.equal(JSON.parse(JSON.stringify(b)).spreads[0].completed,true);b=setSpreadLayout(b,0,1);assert.equal(b.spreads[0].completed,false);b=setSpreadCompletion(b,1,true);b=setSpreadCompletion(b,1,false);assert.equal(b.spreads[1].completed,false)});
+
+test('book order survives merge and reorder without changing manuscript content',()=>{const raw=[{...legacy(),id:'a',title:'A'},{...legacy(),id:'b',title:'B'},{...legacy(),id:'c',title:'C'}];const local=mergeLibraries(raw,[]);assert.deepEqual(sortLibrary(local).map(b=>b.id),['a','b','c']);const moved=moveLibraryBook(local,'a','c',10);assert.deepEqual(sortLibrary(moved).map(b=>b.id),['b','c','a']);assert.equal(moved.find(b=>b.id==='a').pages[0].text,'first\n\nsecond');const onAnotherPC=mergeLibraries(local,JSON.parse(JSON.stringify(moved)));assert.deepEqual(sortLibrary(onAnotherPC).map(b=>b.id),['b','c','a']);assert.equal(moveLibraryBook(moved,'a','a'),moved);const withDeleted=[...moved,{id:'gone',deleted:true,updated:1}];assert.equal(moveLibraryBook(withDeleted,'a','b',20).find(b=>b.id==='gone').deleted,true)});
+
+test('simultaneous order ranks have the same deterministic order on different devices',()=>{const a={id:'a',shelfOrder:3},b={id:'b',shelfOrder:3};assert.deepEqual(sortLibrary([b,a]).map(x=>x.id),sortLibrary([a,b]).map(x=>x.id))});

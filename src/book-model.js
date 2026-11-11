@@ -21,5 +21,15 @@ export function normalizeBook(book){
 }
 export function setSpreadLayout(book,index,count){const b=normalizeBook(book);return {...b,spreads:b.spreads.map((s,i)=>i===index&&s.layout!==count?{...s,layout:count,completed:false}:s)}}
 export function appendSpread(book,count=1){const b=normalizeBook(book),p=makePage();return {...b,pages:[...b.pages,p],spreads:[...b.spreads,{id:crypto.randomUUID(),layout:count,pageIds:[p.id]}]}}
-export function mergeLibraries(local,remote){const map=new Map(local.map(b=>[b.id,b]));for(const b of remote){const old=map.get(b.id);if(!old||(b.updated||0)>(old.updated||0))map.set(b.id,b)}return [...map.values()].map(normalizeBook)}
+export function mergeLibraries(local,remote){const map=new Map(local.map(b=>[b.id,b]));for(const b of remote){const old=map.get(b.id);if(!old||(b.updated||0)>(old.updated||0))map.set(b.id,b)}return ensureShelfOrder([...map.values()].map(normalizeBook))}
 export function setSpreadCompletion(book,index,completed){const b=normalizeBook(book);return {...b,spreads:b.spreads.map((s,i)=>i===index?{...s,completed:!!completed}:s)}}
+
+export function sortLibrary(books){return books.filter(b=>!b.deleted).map((book,index)=>({book,index})).sort((a,b)=>(a.book.shelfOrder??a.index)-(b.book.shelfOrder??b.index)||a.book.id.localeCompare(b.book.id)||a.index-b.index).map(x=>x.book)}
+export function ensureShelfOrder(books){let next=Math.max(-1,...books.filter(b=>Number.isFinite(b.shelfOrder)).map(b=>b.shelfOrder))+1;return books.map(b=>b.deleted||Number.isFinite(b.shelfOrder)?b:{...b,shelfOrder:next++})}
+export function moveLibraryBook(books,sourceId,targetId,now=Date.now()){
+ const ordered=sortLibrary(books),from=ordered.findIndex(b=>b.id===sourceId),to=ordered.findIndex(b=>b.id===targetId);
+ if(from<0||to<0||from===to)return books;
+ const [moved]=ordered.splice(from,1);ordered.splice(to,0,moved);
+ const stamp=Math.max(now,...ordered.map(b=>b.updated||0))+1;
+ return [...ordered.map((b,i)=>b.shelfOrder===i?b:{...b,shelfOrder:i,updated:stamp}),...books.filter(b=>b.deleted)];
+}
