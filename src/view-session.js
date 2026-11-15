@@ -1,0 +1,4 @@
+const key=owner=>`storyweaver:view:${owner}`;
+export function readViewSession(owner){try{const value=JSON.parse(localStorage.getItem(key(owner))||'null');return value&&typeof value==='object'?value:null}catch{return null}}
+export function writeViewSession(owner,value){try{localStorage.setItem(key(owner),JSON.stringify(value))}catch{}}
+export function resolveViewSession(books,session){if(!session?.bookId)return null;const book=books.find(b=>b.id===session.bookId&&!b.deleted);if(!book?.spreads?.length)return null;const matched=book.spreads.findIndex(s=>s.id===session.sceneId),fallback=Number.isInteger(session.index)?session.index:0,index=matched>=0?matched:Math.max(0,Math.min(book.spreads.length-1,fallback)),step=['style','layout','editor'].includes(session.step)?session.step:'editor';return {bookId:book.id,index,step,reader:step==='editor'&&session.reader===true}}
