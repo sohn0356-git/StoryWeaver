@@ -10,10 +10,11 @@
     "test": "node tests/book-model.test.mjs"
   },
   "dependencies": {
+    "fflate": "^0.8.3",
     "firebase": "^11.0.0",
+    "lucide-react": "^0.468.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "lucide-react": "^0.468.0"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "vite": "^6.0.0"
